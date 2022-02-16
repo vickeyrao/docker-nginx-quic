@@ -1,5 +1,7 @@
 ## What is this?
 
+Forked from [macbre/nginx-http3](https://github.com/macbre/docker-nginx-http3)
+
 Stable and up-to-date [nginx](https://nginx.org/en/CHANGES) with [QUIC + **HTTP/3 experimental support**](https://hg.nginx.org/nginx-quic/shortlog/quic), [Google's `brotli` compression](https://github.com/google/ngx_brotli) and [Grade A+ SSL config](https://ssl-config.mozilla.org/)
 
 nginx binary is built from [`quic` experimental branch](https://hg.nginx.org/nginx-quic/shortlog/quic). It's **not production-ready** yet!
@@ -8,14 +10,9 @@ nginx binary is built from [`quic` experimental branch](https://hg.nginx.org/ngi
 As this project is based on the official [nginx image](https://hub.docker.com/_/nginx/) look for instructions there. In addition to the standard configuration directives, you'll be able to use the brotli module specific ones, see [here for official documentation](https://github.com/google/ngx_brotli#configuration-directives)
 
 ```
-docker pull macbre/nginx-http3:latest
+docker pull vickeyrao/nginx-quic:latest
 ```
 
-You can fetch an image from [Github Containers Registry](https://github.com/macbre/docker-nginx-brotli/pkgs/container/nginx-http3) as well:
-
-```
-docker pull ghcr.io/macbre/nginx-http3:latest
-```
 
 ## What's inside
 
@@ -23,15 +20,16 @@ docker pull ghcr.io/macbre/nginx-http3:latest
 * [`headers-more-nginx-module`](https://github.com/openresty/headers-more-nginx-module#readme) - sets and clears HTTP request and response headers
 * [`ngx_brotli`](https://github.com/google/ngx_brotli#configuration-directives) - adds [brotli response compression](https://datatracker.ietf.org/doc/html/rfc7932)
 * [`ngx_http_geoip2_module`](https://github.com/leev/ngx_http_geoip2_module#download-maxmind-geolite2-database-optional) - creates variables with values from the maxmind geoip2 databases based on the client IP
+* [`OpenSSL with QUIC APIs`](https://github.com/quictls/openssl/blob/openssl-3.0.1+quic/README.md) - a fork of OpenSSL to enable QUIC
 
 ```
-$ docker run -it macbre/nginx-http3 nginx -V
-nginx version: nginx/1.21.6 (quic-7c2adf237091-boringssl-123eaaef26abc278f53ae338e9c758eb01c70b08)
-built by gcc 10.3.1 20210424 (Alpine 10.3.1_git20210424) 
-built with OpenSSL 1.1.1 (compatible; BoringSSL) (running with BoringSSL)
+$ docker run -it vickeyrao/nginx-http3 nginx -V
+nginx version: nginx/1.21.7 (quic-ce6d9cf0f567-quictls-ab8b87bdb436b11bf2a10a2a57a897722224f828)
+built by gcc 10.3.1 20211027 (Alpine 10.3.1_git20211027) 
+built with OpenSSL 3.0.1+quic 14 Dec 2021
 TLS SNI support enabled
 configure arguments: 
-	--build=quic-7c2adf237091-boringssl-123eaaef26abc278f53ae338e9c758eb01c70b08 
+	--build=quic-ce6d9cf0f567-quictls-ab8b87bdb436b11bf2a10a2a57a897722224f828 
 	--prefix=/etc/nginx 
 	--sbin-path=/usr/sbin/nginx 
 	--modules-path=/usr/lib/nginx/modules 
@@ -66,6 +64,7 @@ configure arguments:
 	--with-http_perl_module=dynamic 
 	--with-threads 
 	--with-stream 
+	--with-stream_quic_module 
 	--with-stream_ssl_module 
 	--with-stream_ssl_preread_module 
 	--with-stream_realip_module 
@@ -80,8 +79,6 @@ configure arguments:
 	--add-module=/usr/src/ngx_brotli 
 	--add-module=/usr/src/headers-more-nginx-module-0.33 
 	--add-dynamic-module=/ngx_http_geoip2_module 
-	--with-cc-opt=-I../boringssl/include 
-	--with-ld-opt='-L../boringssl/build/ssl -L../boringssl/build/crypto'
 ```
 
 ## SSL Grade A+ handling
@@ -138,12 +135,3 @@ server {
 ```
 
 Refer to `run-docker.sh` script on how to run this container and properly mount required config files and assets.
-
-## Development
-
-Building an image:
-
-```
-docker pull ghcr.io/macbre/nginx-http3:latest
-DOCKER_BUILDKIT=1 docker build . -t macbre/nginx --cache-from=ghcr.io/macbre/nginx-http3:latest --progress=plain
-```
