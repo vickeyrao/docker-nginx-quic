@@ -1,14 +1,14 @@
 # https://hg.nginx.org/nginx-quic/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.21.6
+ARG NGINX_VERSION=1.21.7
 
 # https://hg.nginx.org/nginx-quic/shortlog/quic
-ARG NGINX_COMMIT=7c2adf237091
+ARG NGINX_COMMIT=ce6d9cf0f567
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=9aec15e2aa6feea2113119ba06460af70ab3ea62
 
-# https://github.com/google/boringssl
-ARG BORINGSSL_COMMIT=123eaaef26abc278f53ae338e9c758eb01c70b08
+# https://github.com/quictls/openssl
+ARG QUICTLS_COMMIT=ab8b87bdb436b11bf2a10a2a57a897722224f828
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 ARG HEADERS_MORE_VERSION=0.33
@@ -50,6 +50,7 @@ ARG CONFIG="\
 		--with-http_perl_module=dynamic \
 		--with-threads \
 		--with-stream \
+		--with-stream_quic_module \
 		--with-stream_ssl_module \
 		--with-stream_ssl_preread_module \
 		--with-stream_realip_module \
@@ -66,7 +67,7 @@ ARG CONFIG="\
 		--add-dynamic-module=/ngx_http_geoip2_module \
 	"
 
-FROM alpine:3.14 AS base
+FROM alpine:3.15 AS base
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
 ARG NGINX_VERSION
@@ -74,6 +75,7 @@ ARG NGINX_COMMIT
 ARG NGX_BROTLI_COMMIT
 ARG HEADERS_MORE_VERSION
 ARG CONFIG
+ARG QUICTLS_COMMIT
 
 # https://github.com/leev/ngx_http_geoip2_module/releases
 ARG GEOIP2_VERSION=3.3
@@ -90,29 +92,19 @@ RUN \
 RUN \
 	apk add --no-cache --virtual .build-deps \
 		gcc \
-		libc-dev \
 		make \
-		musl-dev \
-		go \
-		ninja \
 		mercurial \
-		openssl-dev \
-		pcre-dev \
+		pcre2-dev \
 		zlib-dev \
 		linux-headers \
 		curl \
-		gnupg1 \
 		libxslt-dev \
 		gd-dev \
 		geoip-dev \
 		perl-dev \
 	&& apk add --no-cache --virtual .brotli-build-deps \
-		autoconf \
-		libtool \
-		automake \
 		git \
-		g++ \
-		cmake
+		g++
 
 WORKDIR /usr/src/
 
@@ -131,19 +123,17 @@ RUN \
 	&& git submodule update --init --depth 1
 
 RUN \
-  echo "Cloning boringssl ..." \
+  echo "Cloning quictls ..." \
   && cd /usr/src \
-  && git clone https://github.com/google/boringssl \
-  && cd boringssl \
-  && git checkout $BORINGSSL_COMMIT
+  && git clone https://github.com/quictls/openssl \
+  && cd openssl \
+  && git checkout $QUICTLS_COMMIT
 
 RUN \
-  echo "Building boringssl ..." \
-  && cd /usr/src/boringssl \
-  && mkdir build \
-  && cd build \
-  && cmake -GNinja .. \
-  && ninja
+  echo "Building quictls ..." \
+  && cd /usr/src/openssl \
+  && ./Configure \
+  && make install_dev -j$(getconf _NPROCESSORS_ONLN)
 
 RUN \
   echo "Downloading headers-more-nginx-module ..." \
@@ -155,9 +145,6 @@ RUN \
   echo "Building nginx ..." \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-      --with-cc-opt="-I../boringssl/include"   \
-      --with-ld-opt="-L../boringssl/build/ssl  \
-                     -L../boringssl/build/crypto" \
 	&& make -j$(getconf _NPROCESSORS_ONLN)
 
 RUN \
@@ -167,6 +154,7 @@ RUN \
 	&& mkdir /etc/nginx/conf.d/ \
 	&& strip /usr/sbin/nginx* \
 	&& strip /usr/lib/nginx/modules/*.so \
+	&& strip /usr/local/lib64/lib*.so.* \
 	\
 	# https://tools.ietf.org/html/rfc7919
 	# https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
@@ -184,7 +172,7 @@ RUN \
 			| xargs -r apk info --installed \
 			| sort -u > /tmp/runDeps.txt
 
-FROM alpine:3.14
+FROM alpine:3.15
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 
@@ -194,6 +182,7 @@ ENV NGINX_COMMIT $NGINX_COMMIT
 COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
 COPY --from=base /etc/nginx /etc/nginx
 COPY --from=base /usr/lib/nginx/modules/*.so /usr/lib/nginx/modules/
+COPY --from=base /usr/local/lib64/lib*.so.* /usr/lib/
 COPY --from=base /usr/sbin/nginx /usr/sbin/
 COPY --from=base /usr/local/lib/perl5/site_perl /usr/local/lib/perl5/site_perl
 COPY --from=base /usr/bin/envsubst /usr/local/bin/envsubst
