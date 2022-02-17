@@ -15,7 +15,7 @@ ARG HEADERS_MORE_VERSION=0.33
 
 # https://hg.nginx.org/nginx-quic/file/quic/README#l72
 ARG CONFIG="\
-		--build=quic-$NGINX_COMMIT-boringssl-$BORINGSSL_COMMIT \
+		--build=quic-$NGINX_COMMIT-quictls-$BORINGSSL_COMMIT \
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
