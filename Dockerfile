@@ -5,7 +5,7 @@ ARG NGINX_VERSION=1.23.4
 ARG NGINX_COMMIT=af5adec171b4
 
 # https://github.com/google/ngx_brotli
-ARG NGX_BROTLI_COMMIT=71fe6cac061ac62c0241f410fbd43a04a6b4f303
+ARG NGX_BROTLI_COMMIT=6e975bcb015f62e1f303054897783355e2a877dc
 
 # https://github.com/quictls/openssl
 ARG QUICTLS_COMMIT=247bb4dbd1d327ff9ed852ca53402249db5db486
@@ -146,7 +146,7 @@ RUN \
   echo "Building nginx ..." \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-	--with-cc-opt="-I /usr/local/include" \
+	--with-cc-opt="-I /usr/local/include -Wno-vla-parameter" \
 	--with-ld-opt="-L /usr/local/lib64" \
 	&& make -j$(getconf _NPROCESSORS_ONLN)
 
