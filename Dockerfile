@@ -5,7 +5,7 @@ ARG NGINX_VERSION=1.23.4
 ARG NGINX_COMMIT=af5adec171b4
 
 # https://github.com/google/ngx_brotli
-ARG NGX_BROTLI_COMMIT=9aec15e2aa6feea2113119ba06460af70ab3ea62
+ARG NGX_BROTLI_COMMIT=71fe6cac061ac62c0241f410fbd43a04a6b4f303
 
 # https://github.com/quictls/openssl
 ARG QUICTLS_COMMIT=247bb4dbd1d327ff9ed852ca53402249db5db486
