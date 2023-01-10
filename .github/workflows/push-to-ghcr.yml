@@ -1,7 +1,7 @@
 name: Build and publish a Docker image to ghcr.io and Docker Hub
 on:
-  release:
-    branches: [ "master" ]
+  push:
+    tags: [ 'v*' ]
   pull_request:
     branches: [ "master" ]
 
