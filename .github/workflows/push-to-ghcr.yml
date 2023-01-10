@@ -1,26 +1,69 @@
 name: Build and publish a Docker image to ghcr.io and Docker Hub
 on:
-
-  # publish on releases (tagged as "x.y.z" - "v" prefix is removed)
-  release:
-    types: [ published ]
-
-  # publish on pushes to the main branch (tagged as "master")
   push:
-    branches:
-      - master
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  docker_publish:
-    runs-on: "ubuntu-20.04"
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # https://github.com/marketplace/actions/push-to-ghcr
-      - name: Build and publish a Docker image for macbre/nginx-http3
-        uses: macbre/push-to-ghcr@v8
+      # Workaround: https://github.com/docker/build-push-action/issues/461
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
         with:
-          image_name: macbre/nginx-http3
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          docker_io_token: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+              ${{ env.IMAGE_NAME }}
+              ghcr.io/${{ env.IMAGE_NAME }}
+          tags: |
+              type=semver,pattern={{version}}
+
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

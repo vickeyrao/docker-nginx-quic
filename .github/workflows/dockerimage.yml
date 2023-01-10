@@ -16,7 +16,7 @@ jobs:
     # https://github.com/FiloSottile/mkcert#installation
     - name: Install and setup mkcert
       env:
-        MKCERT_VERSION: v1.4.3
+        MKCERT_VERSION: v1.4.4
       run: |
         set -x
         sudo apt-get install -y libnss3-tools
@@ -33,12 +33,12 @@ jobs:
 
     # https://github.com/marketplace/actions/build-and-push-docker-images
     - name: Build the Docker image
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v3.2.0
       with:
         context: .
-        tags: macbre/nginx
+        tags: vickeyrao/nginx
         cache-from: |
-          ghcr.io/macbre/nginx-http3:latest
+          ghcr.io/vickeyrao/docker-nginx-quic:latest
 
     - name: Inspect images
       run: |
@@ -46,7 +46,7 @@ jobs:
 
     - name: Run nginx -V
       run: |
-        docker run -t macbre/nginx nginx -V | sed 's/\-\-/\n\t--/g' | tee
+        docker run -t vickeyrao/nginx nginx -V | sed 's/\-\-/\n\t--/g' | tee
 
     - name: Serve a static asset
       run: |
