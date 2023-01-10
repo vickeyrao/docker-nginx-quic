@@ -11,4 +11,4 @@ docker run --rm \
   -v "$PWD/tests/localhost.crt":/etc/nginx/ssl/localhost.crt:ro \
   -v "$PWD/tests/localhost.key":/etc/nginx/ssl/localhost.key:ro \
  --name test_nginx \
-  -t macbre/nginx
+  -t vickeyrao/nginx
