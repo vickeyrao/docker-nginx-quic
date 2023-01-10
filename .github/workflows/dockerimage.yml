@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
     # https://github.com/FiloSottile/mkcert#installation
     - name: Install and setup mkcert
@@ -19,7 +19,8 @@ jobs:
         MKCERT_VERSION: v1.4.4
       run: |
         set -x
-        sudo apt-get install -y libnss3-tools
+        sudo apt-get update && \
+          sudo apt-get install -y libnss3-tools
 
         curl https://github.com/FiloSottile/mkcert/releases/download/${MKCERT_VERSION}/mkcert-${MKCERT_VERSION}-linux-amd64 --location --output /tmp/mkcert
         chmod 744 /tmp/mkcert
@@ -77,9 +78,8 @@ jobs:
         grep --fixed-strings '<p>It works!</p>' /tmp/h2
 
 
-        docker run --rm --network host ymuski/curl-http3 \
-          curl -v https://localhost:8889 --http3 2>&1 | tee /tmp/h3
-
+        docker run --rm --network host ghcr.io/macbre/curl-http3 \
+          curl -v --insecure https://localhost:8889 --http3 --max-time 5 2>&1 | tee /tmp/h3
         grep --fixed-strings '< HTTP/3 200' /tmp/h3
         grep --fixed-strings --invert-match -i '< server: nginx' /tmp/h3 > /dev/null
         grep --fixed-strings '< alt-svc: h3-27=":8889"; ma=86400, h3-28=":8889"; ma=86400, h3-29=":8889"; ma=86400' /tmp/h3
