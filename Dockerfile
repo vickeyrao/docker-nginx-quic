@@ -1,19 +1,22 @@
 # https://hg.nginx.org/nginx-quic/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.21.7
+ARG NGINX_VERSION=1.23.4
 
 # https://hg.nginx.org/nginx-quic/shortlog/quic
-ARG NGINX_COMMIT=ce6d9cf0f567
+ARG NGINX_COMMIT=af5adec171b4
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=9aec15e2aa6feea2113119ba06460af70ab3ea62
 
 # https://github.com/quictls/openssl
-ARG QUICTLS_COMMIT=ab8b87bdb436b11bf2a10a2a57a897722224f828
+ARG QUICTLS_COMMIT=247bb4dbd1d327ff9ed852ca53402249db5db486
 
 # https://github.com/openresty/headers-more-nginx-module#installation
-ARG HEADERS_MORE_VERSION=0.33
+ARG HEADERS_MORE_VERSION=0.34
 
-# https://hg.nginx.org/nginx-quic/file/quic/README#l72
+# https://github.com/leev/ngx_http_geoip2_module/releases
+ARG GEOIP2_VERSION=3.4
+
+# https://hg.nginx.org/nginx-quic/file/quic/README#l75
 ARG CONFIG="\
 		--build=quic-$NGINX_COMMIT-quictls-$QUICTLS_COMMIT \
 		--prefix=/etc/nginx \
@@ -67,18 +70,17 @@ ARG CONFIG="\
 		--add-dynamic-module=/ngx_http_geoip2_module \
 	"
 
-FROM alpine:3.15 AS base
+FROM alpine:3.17.1 AS base
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 ARG NGX_BROTLI_COMMIT
+
 ARG HEADERS_MORE_VERSION
 ARG CONFIG
 ARG QUICTLS_COMMIT
-
-# https://github.com/leev/ngx_http_geoip2_module/releases
-ARG GEOIP2_VERSION=3.3
+ARG GEOIP2_VERSION
 
 RUN \
   apk add --no-cache --virtual .build-deps \
@@ -144,6 +146,8 @@ RUN \
   echo "Building nginx ..." \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
+	--with-cc-opt="-I /usr/local/include" \
+	--with-ld-opt="-L /usr/local/lib64" \
 	&& make -j$(getconf _NPROCESSORS_ONLN)
 
 RUN \
@@ -171,7 +175,7 @@ RUN \
 			| xargs -r apk info --installed \
 			| sort -u > /tmp/runDeps.txt
 
-FROM alpine:3.15
+FROM alpine:3.17.1
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 
