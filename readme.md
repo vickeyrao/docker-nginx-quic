@@ -10,7 +10,7 @@ nginx binary is built from [`quic` experimental branch](https://hg.nginx.org/ngi
 As this project is based on the official [nginx image](https://hub.docker.com/_/nginx/) look for instructions there. In addition to the standard configuration directives, you'll be able to use the brotli module specific ones, see [here for official documentation](https://github.com/google/ngx_brotli#configuration-directives)
 
 ```
-docker pull vickeyrao/nginx-quic:latest
+docker pull vickeyrao/docker-nginx-quic:latest
 ```
 
 
@@ -20,16 +20,16 @@ docker pull vickeyrao/nginx-quic:latest
 * [`headers-more-nginx-module`](https://github.com/openresty/headers-more-nginx-module#readme) - sets and clears HTTP request and response headers
 * [`ngx_brotli`](https://github.com/google/ngx_brotli#configuration-directives) - adds [brotli response compression](https://datatracker.ietf.org/doc/html/rfc7932)
 * [`ngx_http_geoip2_module`](https://github.com/leev/ngx_http_geoip2_module#download-maxmind-geolite2-database-optional) - creates variables with values from the maxmind geoip2 databases based on the client IP
-* [`OpenSSL with QUIC APIs`](https://github.com/quictls/openssl/blob/openssl-3.0.1+quic/README.md) - a fork of OpenSSL to enable QUIC
+* [`OpenSSL with QUIC APIs`](https://github.com/quictls/openssl) - a fork of OpenSSL to enable QUIC
 
 ```
 $ docker run -it vickeyrao/nginx-http3 nginx -V
-nginx version: nginx/1.21.7 (quic-ce6d9cf0f567-quictls-ab8b87bdb436b11bf2a10a2a57a897722224f828)
-built by gcc 10.3.1 20211027 (Alpine 10.3.1_git20211027) 
-built with OpenSSL 3.0.1+quic 14 Dec 2021
+nginx version: nginx/1.23.4 (quic-af5adec171b4-quictls-247bb4dbd1d327ff9ed852ca53402249db5db486)
+built by gcc 12.2.1 20220924 (Alpine 12.2.1_git20220924-r4)
+built with OpenSSL 3.0.7+quic 1 Nov 2022
 TLS SNI support enabled
 configure arguments: 
-	--build=quic-ce6d9cf0f567-quictls-ab8b87bdb436b11bf2a10a2a57a897722224f828 
+	--build=quic-af5adec171b4-quictls-247bb4dbd1d327ff9ed852ca53402249db5db486 
 	--prefix=/etc/nginx 
 	--sbin-path=/usr/sbin/nginx 
 	--modules-path=/usr/lib/nginx/modules 
@@ -77,8 +77,10 @@ configure arguments:
 	--with-http_v2_module 
 	--with-http_v3_module 
 	--add-module=/usr/src/ngx_brotli 
-	--add-module=/usr/src/headers-more-nginx-module-0.33 
-	--add-dynamic-module=/ngx_http_geoip2_module 
+	--add-module=/usr/src/headers-more-nginx-module-0.34
+	--add-dynamic-module=/ngx_http_geoip2_module
+	--with-cc-opt='-I /usr/local/include' 
+	--with-ld-opt='-L /usr/local/lib64'
 ```
 
 ## SSL Grade A+ handling
