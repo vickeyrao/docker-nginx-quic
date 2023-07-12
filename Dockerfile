@@ -1,14 +1,14 @@
 # https://hg.nginx.org/nginx-quic/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.23.4
+ARG NGINX_VERSION=1.25.1
 
 # https://hg.nginx.org/nginx-quic/shortlog/quic
-ARG NGINX_COMMIT=af5adec171b4
+ARG NGINX_COMMIT=f8134640e861
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=6e975bcb015f62e1f303054897783355e2a877dc
 
 # https://github.com/quictls/openssl
-ARG QUICTLS_COMMIT=247bb4dbd1d327ff9ed852ca53402249db5db486
+ARG QUICTLS_COMMIT=be9e773e8926fc76166a45cfe5a19362372db90c
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 ARG HEADERS_MORE_VERSION=0.34
@@ -70,7 +70,7 @@ ARG CONFIG="\
 		--add-dynamic-module=/ngx_http_geoip2_module \
 	"
 
-FROM alpine:3.17.1 AS base
+FROM alpine:3.18.2 AS base
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
 ARG NGINX_VERSION
@@ -146,7 +146,7 @@ RUN \
   echo "Building nginx ..." \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-	--with-cc-opt="-I /usr/local/include -Wno-vla-parameter" \
+	--with-cc-opt="-I /usr/local/include" \
 	--with-ld-opt="-L /usr/local/lib64" \
 	&& make -j$(getconf _NPROCESSORS_ONLN)
 
@@ -175,7 +175,7 @@ RUN \
 			| xargs -r apk info --installed \
 			| sort -u > /tmp/runDeps.txt
 
-FROM alpine:3.17.1
+FROM alpine:3.18.2
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 
