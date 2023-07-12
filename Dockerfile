@@ -53,7 +53,6 @@ ARG CONFIG="\
 		--with-http_perl_module=dynamic \
 		--with-threads \
 		--with-stream \
-		--with-stream_quic_module \
 		--with-stream_ssl_module \
 		--with-stream_ssl_preread_module \
 		--with-stream_realip_module \
