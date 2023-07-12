@@ -24,12 +24,12 @@ docker pull vickeyrao/docker-nginx-quic:latest
 
 ```
 $ docker run -it vickeyrao/nginx-http3 nginx -V
-nginx version: nginx/1.23.4 (quic-af5adec171b4-quictls-247bb4dbd1d327ff9ed852ca53402249db5db486)
-built by gcc 12.2.1 20220924 (Alpine 12.2.1_git20220924-r4)
-built with OpenSSL 3.0.7+quic 1 Nov 2022
+nginx version: nginx/1.25.1 (quic-f8134640e861-quictls-be9e773e8926fc76166a45cfe5a19362372db90c)
+built by gcc 12.2.1 20220924 (Alpine 12.2.1_git20220924-r10) 
+built with OpenSSL 3.1.0+quic 14 Mar 2023
 TLS SNI support enabled
 configure arguments: 
-	--build=quic-af5adec171b4-quictls-247bb4dbd1d327ff9ed852ca53402249db5db486 
+	--build=quic-f8134640e861-quictls-be9e773e8926fc76166a45cfe5a19362372db90c 
 	--prefix=/etc/nginx 
 	--sbin-path=/usr/sbin/nginx 
 	--modules-path=/usr/lib/nginx/modules 
@@ -64,7 +64,6 @@ configure arguments:
 	--with-http_perl_module=dynamic 
 	--with-threads 
 	--with-stream 
-	--with-stream_quic_module 
 	--with-stream_ssl_module 
 	--with-stream_ssl_preread_module 
 	--with-stream_realip_module 
@@ -77,8 +76,8 @@ configure arguments:
 	--with-http_v2_module 
 	--with-http_v3_module 
 	--add-module=/usr/src/ngx_brotli 
-	--add-module=/usr/src/headers-more-nginx-module-0.34
-	--add-dynamic-module=/ngx_http_geoip2_module
+	--add-module=/usr/src/headers-more-nginx-module-0.34 
+	--add-dynamic-module=/ngx_http_geoip2_module 
 	--with-cc-opt='-I /usr/local/include' 
 	--with-ld-opt='-L /usr/local/lib64'
 ```
@@ -107,11 +106,12 @@ Please refer to `tests/https.conf` config file for an example config used by the
 ```
 server {
     # http/3
-    listen 443 http3 reuseport;
+    listen 443 quic reuseport;
 
     # http/2 and http/1.1
-    listen 443 ssl http2;
+    listen 443 ssl;
 
+    http2 on;	
     server_name localhost;  # customize to match your domain
 
     # you need to mount these files when running this container
@@ -125,10 +125,7 @@ server {
     ssl_early_data on;
 
     # Add Alt-Svc header to negotiate HTTP/3.
-    add_header alt-svc 'h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400';
-
-    # Sent when QUIC was used
-    add_header QUIC-Status $http3;
+    add_header alt-svc 'h3=":443"; ma=86400';
 
     location / {
         # your config
