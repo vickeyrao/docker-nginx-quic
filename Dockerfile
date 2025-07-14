@@ -136,8 +136,8 @@ RUN \
   && cd /usr/src/quictls \
   && mkdir build \
   && cd build \
-  && cmake -GNinja
-  && ninjia
+  && cmake -GNinja \
+  && ninja
 
 RUN \
   echo "Downloading headers-more-nginx-module ..." \
