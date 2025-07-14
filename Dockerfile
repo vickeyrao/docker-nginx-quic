@@ -136,7 +136,7 @@ RUN \
   && cd /usr/src/quictls \
   && mkdir build \
   && cd build \
-  && cmake -GNinja \
+  && cmake -GNinja .. \
   && ninja
 
 RUN \
