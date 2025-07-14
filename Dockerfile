@@ -1,20 +1,23 @@
 # https://hg.nginx.org/nginx-quic/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.27.0
+ARG NGINX_VERSION=1.29.0
 
 # https://hg.nginx.org/nginx/
-ARG NGINX_COMMIT=2166e329fb4e
+ARG NGINX_COMMIT=aff13bf32357
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
-# https://github.com/quictls/openssl
-ARG QUICTLS_COMMIT=4cb31128b5790819dfeea2739fbde265f71a10a2
+# https://github.com/quictls/quictls
+ARG QUICTLS_COMMIT=1ce079095c905dd0248362d695134bb308426e50
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 ARG HEADERS_MORE_VERSION=0.37
 
 # https://github.com/leev/ngx_http_geoip2_module/releases
 ARG GEOIP2_VERSION=3.4
+
+# https://github.com/tokers/zstd-nginx-module/releases
+ARG ZSTD_VERSION=0.1.1
 
 # https://hg.nginx.org/nginx-quic/file/quic/README#l75
 ARG CONFIG="\
@@ -66,10 +69,11 @@ ARG CONFIG="\
 		--with-http_v3_module \
 		--add-module=/usr/src/ngx_brotli \
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
+  		--add-module=/usr/src/zstd \
 		--add-dynamic-module=/ngx_http_geoip2_module \
 	"
 
-FROM alpine:3.20.0 AS base
+FROM alpine:3.22.0 AS base
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
 ARG NGINX_VERSION
@@ -79,16 +83,8 @@ ARG NGX_BROTLI_COMMIT
 ARG HEADERS_MORE_VERSION
 ARG CONFIG
 ARG QUICTLS_COMMIT
+ARG ZSTD_VERSION
 ARG GEOIP2_VERSION
-
-RUN \
-  apk add --no-cache --virtual .build-deps \
-    git \
-  # ngx_http_geoip2_module needs libmaxminddb-dev
-  && apk add --no-cache libmaxminddb-dev \
-  \
-  && git clone --depth 1 --branch ${GEOIP2_VERSION} https://github.com/leev/ngx_http_geoip2_module /ngx_http_geoip2_module \
-  && apk del .build-deps
 
 RUN \
 	apk add --no-cache --virtual .build-deps \
@@ -102,15 +98,21 @@ RUN \
 		gd-dev \
 		geoip-dev \
 		perl-dev \
+  	&& apk add --no-cache --virtual .geoip2-build-deps \
+		libmaxminddb-dev \
 	&& apk add --no-cache --virtual .brotli-build-deps \
+   		cmake \
+     		ninja \
 		git \
-		g++
+		g++ \
+  	&& apk add --no-cache --virtual .zstd-build-deps \
+		zstd-dev \
 
 WORKDIR /usr/src/
 
 RUN \
-	echo "Cloning nginx $NGINX_VERSION (rev $NGINX_COMMIT from 'quic' branch) ..." \
-	&& hg clone -b quic --rev $NGINX_COMMIT https://hg.nginx.org/nginx-quic /usr/src/nginx-$NGINX_VERSION
+	echo "Cloning nginx $NGINX_VERSION (rev $NGINX_COMMIT from 'default' branch) ..." \
+	&& hg clone -b default --rev $NGINX_COMMIT https://hg.nginx.org/nginx-quic /usr/src/nginx-$NGINX_VERSION
 
 RUN \
 	echo "Cloning brotli $NGX_BROTLI_COMMIT ..." \
@@ -125,15 +127,17 @@ RUN \
 RUN \
   echo "Cloning quictls ..." \
   && cd /usr/src \
-  && git clone https://github.com/quictls/openssl \
-  && cd openssl \
+  && git clone https://github.com/quictls/quictls \
+  && cd quictls \
   && git checkout $QUICTLS_COMMIT
 
 RUN \
   echo "Building quictls ..." \
-  && cd /usr/src/openssl \
-  && ./Configure \
-  && make install_dev -j$(getconf _NPROCESSORS_ONLN)
+  && cd /usr/src/quictls \
+  && mkdir build \
+  && cd build \
+  && cmake -GNinja
+  && ninjia
 
 RUN \
   echo "Downloading headers-more-nginx-module ..." \
@@ -142,11 +146,19 @@ RUN \
   && tar -xf headers-more-nginx-module.tar.gz
 
 RUN \
+  echo "Downloading ngx_http_geoip2_module ..." \
+  && git clone --depth 1 --branch ${GEOIP2_VERSION} https://github.com/leev/ngx_http_geoip2_module /usr/src/ngx_http_geoip2_module
+
+RUN \
+  echo "Downloading zstd-nginx-module ..." \
+  && git clone --depth 1 --branch ${ZSTD_VERSION} https://github.com/tokers/zstd-nginx-module.git /usr/src/zstd
+
+RUN \
   echo "Building nginx ..." \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-	--with-cc-opt="-I /usr/local/include" \
-	--with-ld-opt="-L /usr/local/lib64" \
+	--with-cc-opt="-I /usr/src/quictls/build/include" \
+	--with-ld-opt="-L /usr/src/quictls/build/lib" \
 	&& make -j$(getconf _NPROCESSORS_ONLN)
 
 RUN \
@@ -156,11 +168,10 @@ RUN \
 	&& mkdir /etc/nginx/conf.d/ \
 	&& strip /usr/sbin/nginx* \
 	&& strip /usr/lib/nginx/modules/*.so \
-	&& strip /usr/local/lib64/lib*.so.* \
 	\
 	# https://tools.ietf.org/html/rfc7919
 	# https://github.com/mozilla/ssl-config-generator/blob/master/docs/ffdhe2048.txt
-	&& wget -O /etc/ssl/dhparam.pem https://ssl-config.mozilla.org/ffdhe2048.txt \
+	&& wget -q https://ssl-config.mozilla.org/ffdhe2048.txt -O /etc/ssl/dhparam.pem \
 	\
 	# Bring in gettext so we can get `envsubst`, then throw
 	# the rest away. To do this, we need to install `gettext`
@@ -174,7 +185,7 @@ RUN \
 			| xargs -r apk info --installed \
 			| sort -u > /tmp/runDeps.txt
 
-FROM alpine:3.20.0
+FROM alpine:3.22.0
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 
@@ -184,7 +195,6 @@ ENV NGINX_COMMIT $NGINX_COMMIT
 COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
 COPY --from=base /etc/nginx /etc/nginx
 COPY --from=base /usr/lib/nginx/modules/*.so /usr/lib/nginx/modules/
-COPY --from=base /usr/local/lib64/lib*.so.* /usr/lib/
 COPY --from=base /usr/sbin/nginx /usr/sbin/
 COPY --from=base /usr/local/lib/perl5/site_perl /usr/local/lib/perl5/site_perl
 COPY --from=base /usr/bin/envsubst /usr/local/bin/envsubst
