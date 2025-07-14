@@ -106,7 +106,7 @@ RUN \
 		git \
 		g++ \
   	&& apk add --no-cache --virtual .zstd-build-deps \
-		zstd-dev \
+		zstd-dev
 
 WORKDIR /usr/src/
 
