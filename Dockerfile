@@ -98,6 +98,7 @@ RUN \
 		gd-dev \
 		geoip-dev \
 		perl-dev \
+  		openssl-dev \
   	&& apk add --no-cache --virtual .geoip2-build-deps \
 		libmaxminddb-dev \
 	&& apk add --no-cache --virtual .brotli-build-deps \
