@@ -70,7 +70,7 @@ ARG CONFIG="\
 		--add-module=/usr/src/ngx_brotli \
 		--add-module=/usr/src/headers-more-nginx-module-$HEADERS_MORE_VERSION \
   		--add-module=/usr/src/zstd \
-		--add-dynamic-module=/ngx_http_geoip2_module \
+		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
 	"
 
 FROM alpine:3.22.0 AS base
