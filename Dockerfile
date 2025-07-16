@@ -132,17 +132,6 @@ RUN \
   && git checkout $QUICTLS_COMMIT
 
 RUN \
-  echo "Building quictls ..." \
-  && cd /usr/src/quictls \
-  && mkdir build \
-  && cd build \
-  && cmake .. -GNinja
-
-RUN \
-  cd /usr/src/quictls/build \
-  && ninja
-
-RUN \
   echo "Downloading headers-more-nginx-module ..." \
   && cd /usr/src \
   && wget https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${HEADERS_MORE_VERSION}.tar.gz -O headers-more-nginx-module.tar.gz \
@@ -160,8 +149,7 @@ RUN \
   echo "Building nginx ..." \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-	--with-cc-opt="-I /usr/src/quictls/build/include" \
-	--with-ld-opt="-L /usr/src/quictls/build/lib" \
+	--with-openssl="../openssl" \
 	&& make -j$(getconf _NPROCESSORS_ONLN)
 
 RUN \
