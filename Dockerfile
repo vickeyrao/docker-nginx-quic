@@ -128,7 +128,7 @@ RUN \
 RUN \
   echo "Cloning quictls ..." \
   && cd /usr/src \
-  && git clone https://github.com/quictls/quictls \
+  && git clone https://github.com/quictls/quictls.git \
   && cd quictls \
   && git checkout $QUICTLS_COMMIT
 
@@ -138,7 +138,7 @@ RUN \
   && mkdir build \
   && cd build \
   && cmake -GNinja .. \
-  && ninja
+  && ninja test
 
 RUN \
   echo "Downloading headers-more-nginx-module ..." \
@@ -190,8 +190,8 @@ FROM alpine:3.22.0
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 
-ENV NGINX_VERSION $NGINX_VERSION
-ENV NGINX_COMMIT $NGINX_COMMIT
+ENV NGINX_VERSION=$NGINX_VERSION
+ENV NGINX_COMMIT=$NGINX_COMMIT
 
 COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
 COPY --from=base /etc/nginx /etc/nginx
