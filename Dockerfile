@@ -7,8 +7,8 @@ ARG NGINX_COMMIT=aff13bf32357
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
-# https://github.com/quictls/quictls
-ARG QUICTLS_COMMIT=7a86aa901626d359e2043047e3965e8f2697a008
+# https://github.com/openssl/openssl/releases
+ARG OPENSSL_VERSION=3.5.1
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 ARG HEADERS_MORE_VERSION=0.37
@@ -21,7 +21,7 @@ ARG ZSTD_VERSION=0.1.1
 
 # https://hg.nginx.org/nginx-quic/file/quic/README#l75
 ARG CONFIG="\
-		--build=quic-$NGINX_COMMIT-quictls-$QUICTLS_COMMIT \
+		--build=quic-$NGINX_COMMIT-OpenSSL-$OPENSSL_VERSION \
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
@@ -82,7 +82,7 @@ ARG NGX_BROTLI_COMMIT
 
 ARG HEADERS_MORE_VERSION
 ARG CONFIG
-ARG QUICTLS_COMMIT
+ARG OPENSSL_VERSION
 ARG ZSTD_VERSION
 ARG GEOIP2_VERSION
 
@@ -125,18 +125,15 @@ RUN \
 	&& git submodule update --init --depth 1
 
 RUN \
-  echo "Cloning quictls ..." \
-  && cd /usr/src \
-  && git clone https://github.com/quictls/quictls.git \
-  && cd quictls \
-  && git checkout $QUICTLS_COMMIT
-
-RUN \
   echo "Downloading headers-more-nginx-module ..." \
   && cd /usr/src \
   && wget https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${HEADERS_MORE_VERSION}.tar.gz -O headers-more-nginx-module.tar.gz \
   && tar -xf headers-more-nginx-module.tar.gz
 
+RUN \
+  echo "Downloading openssl ..." \
+  && git clone --depth 1 --branch ${OPENSSL_VERSION} https://github.com/openssl/openssl /usr/src/openssl
+  
 RUN \
   echo "Downloading ngx_http_geoip2_module ..." \
   && git clone --depth 1 --branch ${GEOIP2_VERSION} https://github.com/leev/ngx_http_geoip2_module /usr/src/ngx_http_geoip2_module
@@ -149,7 +146,7 @@ RUN \
   echo "Building nginx ..." \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-	--with-openssl="../quictls" \
+	--with-openssl="../openssl" \
 	&& make -j$(getconf _NPROCESSORS_ONLN)
 
 RUN \
