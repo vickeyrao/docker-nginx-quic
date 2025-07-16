@@ -8,7 +8,7 @@ ARG NGINX_COMMIT=aff13bf32357
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
 # https://github.com/quictls/quictls
-ARG QUICTLS_COMMIT=1ce079095c905dd0248362d695134bb308426e50
+ARG QUICTLS_COMMIT=7a86aa901626d359e2043047e3965e8f2697a008
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 ARG HEADERS_MORE_VERSION=0.37
@@ -136,8 +136,11 @@ RUN \
   && cd /usr/src/quictls \
   && mkdir build \
   && cd build \
-  && cmake -GNinja .. \
-  && ninja test
+  && cmake .. -GNinja
+
+RUN \
+  cd /usr/src/quictls/build \
+  && ninja
 
 RUN \
   echo "Downloading headers-more-nginx-module ..." \
