@@ -149,7 +149,7 @@ RUN \
   echo "Building nginx ..." \
 	&& cd /usr/src/nginx-$NGINX_VERSION \
 	&& ./auto/configure $CONFIG \
-	--with-openssl="../openssl" \
+	--with-openssl="../quictls" \
 	&& make -j$(getconf _NPROCESSORS_ONLN)
 
 RUN \
