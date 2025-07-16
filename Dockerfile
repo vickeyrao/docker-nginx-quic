@@ -7,8 +7,8 @@ ARG NGINX_COMMIT=aff13bf32357
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
-# https://github.com/openssl/openssl/releases
-ARG OPENSSL_VERSION=3.5.1
+# https://github.com/openssl/openssl
+ARG OPENSSL_COMMIT=ac87f6b3a36ee3beac9e806c33127269edb6ca20
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 ARG HEADERS_MORE_VERSION=0.37
@@ -21,7 +21,7 @@ ARG ZSTD_VERSION=0.1.1
 
 # https://hg.nginx.org/nginx-quic/file/quic/README#l75
 ARG CONFIG="\
-		--build=quic-$NGINX_COMMIT-OpenSSL-$OPENSSL_VERSION \
+		--build=quic-$NGINX_COMMIT-OpenSSL-$OPENSSL_COMMIT \
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
@@ -82,7 +82,7 @@ ARG NGX_BROTLI_COMMIT
 
 ARG HEADERS_MORE_VERSION
 ARG CONFIG
-ARG OPENSSL_VERSION
+ARG OPENSSL_COMMIT
 ARG ZSTD_VERSION
 ARG GEOIP2_VERSION
 
@@ -125,14 +125,17 @@ RUN \
 	&& git submodule update --init --depth 1
 
 RUN \
+  echo "Cloning openssl ..." \
+  && cd /usr/src \
+  && git clone https://github.com/openssl/openssl \
+  && cd openssl \
+  && git checkout $OPENSSL_COMMIT
+  
+RUN \
   echo "Downloading headers-more-nginx-module ..." \
   && cd /usr/src \
   && wget https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${HEADERS_MORE_VERSION}.tar.gz -O headers-more-nginx-module.tar.gz \
   && tar -xf headers-more-nginx-module.tar.gz
-
-RUN \
-  echo "Downloading openssl ..." \
-  && git clone --depth 1 --branch ${OPENSSL_VERSION} https://github.com/openssl/openssl /usr/src/openssl
   
 RUN \
   echo "Downloading ngx_http_geoip2_module ..." \
