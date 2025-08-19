@@ -1,17 +1,17 @@
 # https://hg.nginx.org/nginx-quic/file/tip/src/core/nginx.h
-ARG NGINX_VERSION=1.29.0
+ARG NGINX_VERSION=1.29.1
 
 # https://hg.nginx.org/nginx/
-ARG NGINX_COMMIT=aff13bf32357
+ARG NGINX_COMMIT=68813362708e
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
 # https://github.com/openssl/openssl
-ARG OPENSSL_COMMIT=ac87f6b3a36ee3beac9e806c33127269edb6ca20
+ARG OPENSSL_COMMIT=0893a62353583343eb712adef6debdfbe597c227
 
 # https://github.com/openresty/headers-more-nginx-module#installation
-ARG HEADERS_MORE_VERSION=0.37
+ARG HEADERS_MORE_VERSION=0.39
 
 # https://github.com/leev/ngx_http_geoip2_module/releases
 ARG GEOIP2_VERSION=3.4
@@ -73,7 +73,7 @@ ARG CONFIG="\
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
 	"
 
-FROM alpine:3.22.0 AS base
+FROM alpine:3.22.1 AS base
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
 ARG NGINX_VERSION
@@ -176,7 +176,7 @@ RUN \
 			| xargs -r apk info --installed \
 			| sort -u > /tmp/runDeps.txt
 
-FROM alpine:3.22.0
+FROM alpine:3.22.1
 ARG NGINX_VERSION
 ARG NGINX_COMMIT
 
