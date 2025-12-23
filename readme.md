@@ -2,9 +2,9 @@
 
 Forked from [macbre/nginx-http3](https://github.com/macbre/docker-nginx-http3)
 
-Stable and up-to-date [nginx](https://nginx.org/en/CHANGES) with [QUIC + **HTTP/3 experimental support**](https://hg.nginx.org/nginx-quic/shortlog/quic), [Google's `brotli` compression](https://github.com/google/ngx_brotli) and [Grade A+ SSL config](https://ssl-config.mozilla.org/)
+Stable and up-to-date [Nginx ](https://nginx.org/en/CHANGES) with [QUIC + **HTTP/3** support](https://nginx.org/en/docs/http/ngx_http_v3_module.html), [Google's `brotli` compression](https://github.com/google/ngx_brotli), [`zstd` compression](https://github.com/tokers/zstd-nginx-module) and [Grade A+ SSL config](https://ssl-config.mozilla.org/)
 
-nginx binary is built from [`quic` experimental branch](https://hg.nginx.org/nginx-quic/shortlog/quic). It's **not production-ready** yet!
+nginx binary is built from [Nginx Github repository](https://github.com/nginx/nginx). 
 
 ## How to use this image
 As this project is based on the official [nginx image](https://hub.docker.com/_/nginx/) look for instructions there. In addition to the standard configuration directives, you'll be able to use the brotli module specific ones, see [here for official documentation](https://github.com/google/ngx_brotli#configuration-directives)
@@ -23,13 +23,13 @@ docker pull vickeyrao/docker-nginx-quic:latest
 * [`OpenSSL with QUIC APIs`](https://github.com/quictls/openssl) - a fork of OpenSSL to enable QUIC
 
 ```
-$ docker run -it vickeyrao/nginx-http3 nginx -V
-nginx version: nginx/1.25.1 (quic-f8134640e861-quictls-be9e773e8926fc76166a45cfe5a19362372db90c)
-built by gcc 12.2.1 20220924 (Alpine 12.2.1_git20220924-r10) 
-built with OpenSSL 3.1.0+quic 14 Mar 2023
+$ docker run -it vickeyrao/docker-nginx-quic nginx -V
+nginx version: nginx/1.29.4 (quic-c704574-OpenSSL-7b371d80d959ec9ab4139d09d78e83c090de9779)
+built by gcc 15.2.0 (Alpine 15.2.0) 
+built with OpenSSL 3.6.0 1 Oct 2025
 TLS SNI support enabled
 configure arguments: 
-	--build=quic-f8134640e861-quictls-be9e773e8926fc76166a45cfe5a19362372db90c 
+	--build=quic-c704574-OpenSSL-7b371d80d959ec9ab4139d09d78e83c090de9779 
 	--prefix=/etc/nginx 
 	--sbin-path=/usr/sbin/nginx 
 	--modules-path=/usr/lib/nginx/modules 
@@ -76,10 +76,10 @@ configure arguments:
 	--with-http_v2_module 
 	--with-http_v3_module 
 	--add-module=/usr/src/ngx_brotli 
-	--add-module=/usr/src/headers-more-nginx-module-0.34 
-	--add-dynamic-module=/ngx_http_geoip2_module 
-	--with-cc-opt='-I /usr/local/include' 
-	--with-ld-opt='-L /usr/local/lib64'
+	--add-module=/usr/src/headers-more-nginx-module-0.39 
+	--add-module=/usr/src/zstd 
+	--add-dynamic-module=/usr/src/ngx_http_geoip2_module 
+	--with-openssl=../openssl
 ```
 
 ## SSL Grade A+ handling
