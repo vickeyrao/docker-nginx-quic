@@ -1,14 +1,14 @@
 # https://github.com/nginx/nginx/blob/master/src/core/nginx.h
-ARG NGINX_VERSION=1.29.7
+ARG NGINX_VERSION=1.29.8
 
 # https://github.com/nginx/nginx/releases
-ARG NGINX_COMMIT=5ac6f49
+ARG NGINX_COMMIT=5eaf45f
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
 # https://github.com/openssl/openssl
-ARG OPENSSL_COMMIT=c9a9e5b10105ad850b6e4d1122c645c67767c341
+ARG OPENSSL_COMMIT=fe686e15d84334b284f883118ed92f64b409b3aa
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 ARG HEADERS_MORE_VERSION=0.39
