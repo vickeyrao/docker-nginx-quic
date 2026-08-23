@@ -1,14 +1,11 @@
-# https://github.com/nginx/nginx/blob/master/src/core/nginx.h
-ARG NGINX_VERSION=1.31.2
-
 # https://github.com/nginx/nginx/releases
-ARG NGINX_COMMIT=2fd01ed
+ARG NGINX_VERSION=1.31.4
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
-# https://github.com/openssl/openssl
-ARG OPENSSL_COMMIT=1e963a8680ec78ad2072792c7a1a71f3c530bd2e
+# https://github.com/openssl/openssl/releases
+ARG OPENSSL_VERSION=4.0.1
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 ARG HEADERS_MORE_VERSION=0.39
@@ -21,7 +18,7 @@ ARG ZSTD_VERSION=0.1.1
 
 # https://hg.nginx.org/nginx-quic/file/quic/README#l75
 ARG CONFIG="\
-		--build=quic-$NGINX_COMMIT-OpenSSL-$OPENSSL_COMMIT \
+		--build=quic-$NGINX_VERSION-OpenSSL-$OPENSSL_VERSION \
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
@@ -76,12 +73,11 @@ ARG CONFIG="\
 FROM alpine:3.24.1 AS base
 
 ARG NGINX_VERSION
-ARG NGINX_COMMIT
 ARG NGX_BROTLI_COMMIT
 
 ARG HEADERS_MORE_VERSION
 ARG CONFIG
-ARG OPENSSL_COMMIT
+ARG OPENSSL_VERSION
 ARG ZSTD_VERSION
 ARG GEOIP2_VERSION
 
@@ -110,10 +106,9 @@ RUN \
 WORKDIR /usr/src/
 
 RUN \
-	echo "Cloning nginx $NGINX_VERSION (rev $NGINX_COMMIT) ..." \
-	&& git clone https://github.com/nginx/nginx.git /usr/src/nginx-$NGINX_VERSION \
-	&& cd /usr/src/nginx-$NGINX_VERSION \
-	&& git reset --hard $NGINX_COMMIT
+	echo "Cloning nginx release $NGINX_VERSION ..." \
+	&& git clone --depth 1 --branch release-$NGINX_VERSION https://github.com/nginx/nginx.git /usr/src/nginx-$NGINX_VERSION \
+	&& cd /usr/src/nginx-$NGINX_VERSION
 
 RUN \
 	echo "Cloning brotli $NGX_BROTLI_COMMIT ..." \
@@ -128,9 +123,8 @@ RUN \
 RUN \
   echo "Cloning openssl ..." \
   && cd /usr/src \
-  && git clone https://github.com/openssl/openssl \
-  && cd openssl \
-  && git checkout $OPENSSL_COMMIT
+  && git clone --depth 1 --branch openssl-$OPENSSL_VERSION https://github.com/openssl/openssl.git \
+  && cd openssl
   
 RUN \
   echo "Downloading headers-more-nginx-module ..." \
@@ -179,10 +173,8 @@ RUN \
 
 FROM alpine:3.24.1
 ARG NGINX_VERSION
-ARG NGINX_COMMIT
 
 ENV NGINX_VERSION=$NGINX_VERSION
-ENV NGINX_COMMIT=$NGINX_COMMIT
 
 COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
 COPY --from=base /etc/nginx /etc/nginx
