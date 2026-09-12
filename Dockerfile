@@ -1,11 +1,11 @@
 # https://github.com/nginx/nginx/releases
-ARG NGINX_VERSION=1.31.4
+ARG NGINX_VERSION=1.31.5
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 
 # https://github.com/openssl/openssl/releases
-ARG OPENSSL_VERSION=4.0.1
+ARG OPENSSL_VERSION=4.0.2
 
 # https://github.com/openresty/headers-more-nginx-module#installation
 ARG HEADERS_MORE_VERSION=0.39
