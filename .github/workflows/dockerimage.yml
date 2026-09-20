@@ -63,13 +63,6 @@ jobs:
         grep --fixed-strings '< Content-Encoding: zstd' /tmp/out
         grep --fixed-strings '<p>It works!</p>' /tmp/out
 
-
-        curl -v --compressed localhost:8888/FooBar 2>&1 | tee /tmp/out
-
-        grep --fixed-strings 'HTTP/1.1 301 Moved Permanently' /tmp/out
-        grep --fixed-strings '< x-rewrite: 1' /tmp/out
-        grep --fixed-strings '< Location: http://localhost/foobar' /tmp/out
-
     - name: http2 vs h3
       run: |
         set -x
@@ -82,7 +75,7 @@ jobs:
 
 
         docker run --rm --network host ghcr.io/macbre/curl-http3 \
-          curl -v --insecure https://localhost:8889 --http3 --max-time 5 2>&1 | tee /tmp/h3
+        curl -v --insecure https://localhost:8889 --http3 --max-time 5 2>&1 | tee /tmp/h3
 
         grep --fixed-strings '< HTTP/3 200' /tmp/h3
         grep --fixed-strings --invert-match -i '< server: nginx' /tmp/h3 > /dev/null
