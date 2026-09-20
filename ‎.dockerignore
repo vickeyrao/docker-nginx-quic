@@ -1,0 +1,10 @@
+.github/
+tests/
+.git/
+.gitignore
+readme.md
+run-docker.sh
+Dockerfile*
+*.md
+!nginx.conf
+!ssl_common.conf
