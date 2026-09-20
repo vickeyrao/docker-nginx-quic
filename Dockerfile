@@ -50,7 +50,6 @@ ARG CONFIG="\
 		--with-http_xslt_module=dynamic \
 		--with-http_image_filter_module=dynamic \
 		--with-http_geoip_module=dynamic \
-		--with-http_perl_module=dynamic \
 		--with-threads \
 		--with-stream \
 		--with-stream_ssl_module \
@@ -92,7 +91,6 @@ RUN \
 		libxslt-dev \
 		gd-dev \
 		geoip-dev \
-		perl-dev \
   	&& apk add --no-cache --virtual .geoip2-build-deps \
 		libmaxminddb-dev \
 	&& apk add --no-cache --virtual .brotli-build-deps \
@@ -130,7 +128,8 @@ RUN \
   echo "Downloading headers-more-nginx-module ..." \
   && cd /usr/src \
   && wget https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${HEADERS_MORE_VERSION}.tar.gz -O headers-more-nginx-module.tar.gz \
-  && tar -xf headers-more-nginx-module.tar.gz
+  && tar -xf headers-more-nginx-module.tar.gz \
+  && rm -f headers-more-nginx-module.tar.gz
   
 RUN \
   echo "Downloading ngx_http_geoip2_module ..." \
@@ -176,11 +175,14 @@ ARG NGINX_VERSION
 
 ENV NGINX_VERSION=$NGINX_VERSION
 
+LABEL org.opencontainers.image.title="docker-nginx-quic" \
+      org.opencontainers.image.description="nginx with QUIC/HTTP/3, brotli, zstd and GeoIP2 support" \
+      org.opencontainers.image.source="https://github.com/vickeyrao/docker-nginx-quic"
+
 COPY --from=base /tmp/runDeps.txt /tmp/runDeps.txt
 COPY --from=base /etc/nginx /etc/nginx
 COPY --from=base /usr/lib/nginx/modules/*.so /usr/lib/nginx/modules/
 COPY --from=base /usr/sbin/nginx /usr/sbin/
-COPY --from=base /usr/local/lib/perl5/site_perl /usr/local/lib/perl5/site_perl
 COPY --from=base /usr/bin/envsubst /usr/local/bin/envsubst
 COPY --from=base /etc/ssl/dhparam.pem /etc/ssl/dhparam.pem
 
@@ -200,13 +202,10 @@ RUN \
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY ssl_common.conf /etc/nginx/conf.d/ssl_common.conf
 
-# show env
-RUN env | sort
-
 # test the configuration
-RUN nginx -V; nginx -t
+RUN nginx -t && nginx -V
 
-EXPOSE 80 443
+EXPOSE 80 443 443/udp
 
 STOPSIGNAL SIGTERM
 
