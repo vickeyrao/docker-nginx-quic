@@ -1,5 +1,5 @@
 # https://github.com/nginx/nginx/releases
-ARG NGINX_VERSION=1.31.5
+ARG NGINX_VERSION=1.31.6
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
@@ -8,7 +8,7 @@ ARG NGX_BROTLI_COMMIT=a71f9312c2deb28875acc7bacfdd5695a111aa53
 ARG OPENSSL_VERSION=4.0.2
 
 # https://github.com/openresty/headers-more-nginx-module#installation
-ARG HEADERS_MORE_VERSION=0.39
+ARG HEADERS_MORE_VERSION=0.40
 
 # https://github.com/leev/ngx_http_geoip2_module/releases
 ARG GEOIP2_VERSION=3.4
@@ -70,7 +70,7 @@ ARG CONFIG="\
 		--add-dynamic-module=/usr/src/ngx_http_geoip2_module \
 	"
 
-FROM alpine:3.24.1 AS base
+FROM alpine:3.24.2 AS base
 
 ARG NGINX_VERSION
 ARG NGX_BROTLI_COMMIT
@@ -171,7 +171,7 @@ RUN \
 			| xargs -r apk info --installed \
 			| sort -u > /tmp/runDeps.txt
 
-FROM alpine:3.24.1
+FROM alpine:3.24.2
 ARG NGINX_VERSION
 
 ENV NGINX_VERSION=$NGINX_VERSION
