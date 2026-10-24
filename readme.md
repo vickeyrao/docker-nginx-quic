@@ -2,84 +2,72 @@
 
 Forked from [macbre/nginx-http3](https://github.com/macbre/docker-nginx-http3)
 
-Stable and up-to-date [Nginx ](https://nginx.org/en/CHANGES) with [QUIC + **HTTP/3** support](https://nginx.org/en/docs/http/ngx_http_v3_module.html), [Google's `brotli` compression](https://github.com/google/ngx_brotli), [`zstd` compression](https://github.com/tokers/zstd-nginx-module) and [Grade A+ SSL config](https://ssl-config.mozilla.org/)
+Stable and up-to-date [Nginx](https://nginx.org/en/CHANGES) with [QUIC + HTTP/3 support](https://nginx.org/en/docs/http/ngx_http_v3_module.html), [Google's `brotli` compression](https://github.com/google/ngx_brotli), [`zstd` compression](https://github.com/tokers/zstd-nginx-module), and [Grade A+ SSL config](https://ssl-config.mozilla.org/).
 
-nginx binary is built from [Nginx Github repository](https://github.com/nginx/nginx). 
+The binary is built from the [official Nginx source](https://github.com/nginx/nginx), with support for the QUIC/HTTP/3 stack and a curated set of compression and HTTP modules.
 
 ## How to use this image
-As this project is based on the official [nginx image](https://hub.docker.com/_/nginx/) look for instructions there. In addition to the standard configuration directives, you'll be able to use the brotli module specific ones, see [here for official documentation](https://github.com/google/ngx_brotli#configuration-directives)
 
-```
-docker pull vickeyrao/docker-nginx-quic:latest
+This project follows the same container conventions as the official [nginx image](https://hub.docker.com/_/nginx/). In addition to the standard nginx directives, you can use the module-specific config options documented upstream for brotli, GeoIP2, and other included extensions.
+
+Pull the image:
+
+```bash
+docker pull ghcr.io/vickeyrao/docker-nginx-quic:latest
+# or
+# docker pull vickeyrao/docker-nginx-quic:latest
 ```
 
+Run it with a basic HTTP/HTTPS setup:
+
+```bash
+docker run --rm \
+  -p 0.0.0.0:80:80 \
+  -p 0.0.0.0:443:443/tcp \
+  -p 0.0.0.0:443:443/udp \
+  ghcr.io/vickeyrao/docker-nginx-quic:latest
+```
+
+For a complete example using TLS certs and test configs, see the included `run-docker.sh` script in this repository.
 
 ## What's inside
 
 * [built-in nginx modules](https://nginx.org/en/docs/)
 * [`headers-more-nginx-module`](https://github.com/openresty/headers-more-nginx-module#readme) - sets and clears HTTP request and response headers
 * [`ngx_brotli`](https://github.com/google/ngx_brotli#configuration-directives) - adds [brotli response compression](https://datatracker.ietf.org/doc/html/rfc7932)
-* [`ngx_http_geoip2_module`](https://github.com/leev/ngx_http_geoip2_module#download-maxmind-geolite2-database-optional) - creates variables with values from the maxmind geoip2 databases based on the client IP
-* [`OpenSSL with QUIC APIs`](https://github.com/quictls/openssl) - a fork of OpenSSL to enable QUIC
+* [`ngx_http_geoip2_module`](https://github.com/leev/ngx_http_geoip2_module#download-maxmind-geolite2-database-optional) - creates variables from MaxMind GeoIP2 databases based on the client IP
+* [`OpenSSL with QUIC APIs`](https://github.com/openssl/openssl) - an OpenSSL build with QUIC-ready APIs and HTTP/3 support
+* [`zstd-nginx-module`](https://github.com/tokers/zstd-nginx-module) - adds zstd compression for HTTP responses
 
-```
-$ docker run -it vickeyrao/docker-nginx-quic nginx -V
-nginx version: nginx/1.29.4 (quic-c704574-OpenSSL-7b371d80d959ec9ab4139d09d78e83c090de9779)
-built by gcc 15.2.0 (Alpine 15.2.0) 
-built with OpenSSL 3.6.0 1 Oct 2025
+The current build is pinned to:
+
+- nginx `1.31.8`
+- OpenSSL `4.1.0`
+- `headers-more-nginx-module` `0.40`
+- `ngx_http_geoip2_module` `3.4`
+- `zstd-nginx-module` `0.1.1`
+
+Example runtime output:
+
+```bash
+$ docker run --rm ghcr.io/vickeyrao/docker-nginx-quic:latest nginx -V
+nginx version: nginx/1.31.8 (quic-OpenSSL-4.1.0)
+built by gcc 14.2.0 (Alpine 3.24.3)
+built with OpenSSL 4.1.0
 TLS SNI support enabled
-configure arguments: 
-	--build=quic-c704574-OpenSSL-7b371d80d959ec9ab4139d09d78e83c090de9779 
-	--prefix=/etc/nginx 
-	--sbin-path=/usr/sbin/nginx 
-	--modules-path=/usr/lib/nginx/modules 
-	--conf-path=/etc/nginx/nginx.conf 
-	--error-log-path=/var/log/nginx/error.log 
-	--http-log-path=/var/log/nginx/access.log 
-	--pid-path=/var/run/nginx.pid 
-	--lock-path=/var/run/nginx.lock 
-	--http-client-body-temp-path=/var/cache/nginx/client_temp 
-	--http-proxy-temp-path=/var/cache/nginx/proxy_temp 
-	--http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp 
-	--http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp 
-	--http-scgi-temp-path=/var/cache/nginx/scgi_temp 
-	--user=nginx 
-	--group=nginx 
-	--with-http_ssl_module 
-	--with-http_realip_module 
-	--with-http_addition_module 
-	--with-http_sub_module 
-	--with-http_dav_module 
-	--with-http_flv_module 
-	--with-http_mp4_module 
-	--with-http_gunzip_module 
-	--with-http_gzip_static_module 
-	--with-http_random_index_module 
-	--with-http_secure_link_module 
-	--with-http_stub_status_module 
-	--with-http_auth_request_module 
-	--with-http_xslt_module=dynamic 
-	--with-http_image_filter_module=dynamic 
-	--with-http_geoip_module=dynamic 
-	--with-http_perl_module=dynamic 
-	--with-threads 
-	--with-stream 
-	--with-stream_ssl_module 
-	--with-stream_ssl_preread_module 
-	--with-stream_realip_module 
-	--with-stream_geoip_module=dynamic 
-	--with-http_slice_module 
-	--with-mail 
-	--with-mail_ssl_module 
-	--with-compat 
-	--with-file-aio 
-	--with-http_v2_module 
-	--with-http_v3_module 
-	--add-module=/usr/src/ngx_brotli 
-	--add-module=/usr/src/headers-more-nginx-module-0.39 
-	--add-module=/usr/src/zstd 
-	--add-dynamic-module=/usr/src/ngx_http_geoip2_module 
-	--with-openssl=../openssl
+configure arguments:
+  --prefix=/etc/nginx
+  --sbin-path=/usr/sbin/nginx
+  --modules-path=/usr/lib/nginx/modules
+  --conf-path=/etc/nginx/nginx.conf
+  --with-http_ssl_module
+  --with-http_v2_module
+  --with-http_v3_module
+  --add-module=/usr/src/ngx_brotli
+  --add-module=/usr/src/headers-more-nginx-module-0.40
+  --add-module=/usr/src/zstd
+  --add-dynamic-module=/usr/src/ngx_http_geoip2_module
+  --with-openssl=../openssl
 ```
 
 ## SSL Grade A+ handling
