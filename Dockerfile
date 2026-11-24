@@ -1,5 +1,5 @@
 # https://github.com/nginx/nginx/releases
-ARG NGINX_VERSION=1.31.9
+ARG NGINX_VERSION=1.31.10
 
 # https://github.com/google/ngx_brotli
 ARG NGX_BROTLI_COMMIT=53e0fb55f250f48fe80c0ddbf6c0f7103cdbaae1
